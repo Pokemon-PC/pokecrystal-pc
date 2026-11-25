@@ -126,3 +126,11 @@ Select, Tab = avance rapide, F11 = plein écran. Manette : automatique.
   pour pixel à Windows. `pokecrystal.ini` : commentaires en fin de ligne
   (`lang=en #en ou fr`), espaces et guillemets acceptés (bug signalé par
   l'utilisateur). Son et manette validés par l'utilisateur.
+- 2026-11-25 (suite) : les ROM de l'utilisateur sont toutes dans un seul dossier
+  (`D:/LUC/pokemonall/roms`, à plat). Le jeu les trouve seul : chemin explicite
+  (argument, `rom_en=`/`rom_fr=`), sinon dossier du programme, sinon `rom_dir`
+  du `.ini` (`--rom-dir`, `GB_ROM_DIR`) ; le fichier est choisi à son contenu
+  (CRC de la ROM entière = version + langue), jamais à son nom. Testé : 10 cas
+  EN/FR trouvés depuis `rom_dir` seul. Paquets Windows (.zip) et Linux
+  (.tar.gz, glibc >= 2.34 grâce à `pc/cmake/glibc_compat.h` et
+  `-DGB_PORTABLE_GLIBC=ON`) faits avec `pc/tools/package.py`.
