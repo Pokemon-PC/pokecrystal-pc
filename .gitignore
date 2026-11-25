@@ -37,3 +37,7 @@ gfx/pokemon/*/frames.asm
 *.sn*
 *.sa*
 *.sg1
+
+# PC port (pc/): build and package outputs
+/build/
+/dist/

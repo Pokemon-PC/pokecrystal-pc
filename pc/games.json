@@ -1,0 +1,5 @@
+[
+  {"exe": "pokecrystal",
+   "en": {"make": "crystal", "rom": "pokecrystal.gbc", "sym": "pokecrystal.sym", "name": "crystal", "prefix": "en"},
+   "fr": {"title": "PM_CRYSTAL", "name": "cristal", "roots": ["pc/roots_crystal_fr.txt", "pc/roots_crystal_fr_runtime.txt"]}}
+]

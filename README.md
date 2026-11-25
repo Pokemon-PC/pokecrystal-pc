@@ -1,35 +1,68 @@
-# Pokémon Crystal [![Build Status][ci-badge]][ci]
+# Pokémon Cristal — version PC native / native PC port
 
-This is a disassembly of Pokémon Crystal.
+**Projet de fans, non affilié à Nintendo, Game Freak, The Pokémon Company ni
+à [pret](https://pret.github.io/).** C'est un fork du dépôt
+[pret/pokecrystal](https://github.com/pret/pokecrystal) (désassemblage du jeu), dont
+l'outillage d'origine leur appartient. pret n'accepte pas le code généré par
+IA et ne veut pas y être associé : n'envoyez rien d'ici à pret et ne les
+sollicitez pas à son sujet. Le port PC (dossier `pc/`) a été réalisé avec des
+agents IA.
 
-It builds the following ROMs:
+(English below)
 
-- Pokemon - Crystal Version (UE) (V1.0) [C][!].gbc `sha1: f4cd194bdee0d04ca4eac29e09b8e4e9d818c133`
-- Pokemon - Crystal Version (UE) (V1.1) [C][!].gbc `sha1: f2f52230b536214ef7c9924f483392993e226cfb`
-- Pokemon - Crystal Version (A) [C][!].gbc `sha1: a0fc810f1d4e124434f7be2c989ab5b5892ddf36`
-- CRYSTAL_ps3_010328d.bin `sha1: c60d57a24bbe8ecf7cba54ab3f90669f97bd330d`
-- CRYSTAL_ps3_us_revise_010710d.bin `sha1: 391ae86b1d5a26db712ffe6c28bbf2a1f804c3c4`
-- CGBBYTE1.784.patch `sha1: a25517f60ca0e887d39ec698aa56a0040532a4b3`
+## Français
 
-To set up the repository, see [INSTALL.md](INSTALL.md).
+Pokémon Cristal qui tourne **nativement sur PC** (Windows, Linux), **sans
+émulateur**. Le code du jeu (assembleur Game Boy) est **traduit en C** par
+recompilation statique, puis compilé ; le matériel Game Boy Color est reproduit
+(écran ligne par ligne, son 4 canaux, manette, horloge, sauvegarde).
 
+- **Votre ROM est nécessaire** ; l'exécutable ne contient aucune donnée du jeu.
+  ROM reconnues :
+  - Pokemon - Crystal Version (USA) (v1.0)
+  - Pokemon - Version Cristal (France)
+- **Langue** : anglais et français dans le même exécutable, choisis d'après la
+  ROM : `--lang en|fr`, ou dans `pokecrystal.ini` à côté du programme :
+  ```
+  lang=fr
+  rom_en=C:\...\Pokemon - Crystal Version (USA).gbc
+  rom_fr=C:\...\Pokemon - Version Cristal (France).gbc
+  ```
+  Autres réglages : `fullscreen=1`, `scale=4`, `save=...`.
+- **Commandes** : flèches, X/Espace = A, Z/Ctrl = B, Entrée = Start,
+  Retour arrière = Select, Tab = avance rapide, F11 = plein écran ; manette
+  reconnue automatiquement.
+- **Sauvegarde** : `pokemon_crystal.sav` / `pokemon_cristal.sav` à côté du programme, au format des émulateurs
+  (`.sav`) : une sauvegarde d'émulateur peut être reprise.
 
-## See also
+### Compiler
 
-- [**FAQ**](FAQ.md)
-- [**Documentation**][docs]
-- [**Wiki**][wiki] (includes [tutorials][tutorials])
-- [**Symbols**][symbols]
-- [**Tools**][tools]
+Il faut rgbds 1.0.x et `make` (pour reconstruire la ROM anglaise et ses
+symboles, comme le dépôt d'origine), Python 3, CMake, Ninja, Clang et SDL2.
+```
+python pc/build.py --rom-fr "<ROM française>"
+```
+Le C généré n'est pas dans le dépôt : il est produit à la compilation. Les
+détails (méthode, outils de test, journal) sont dans
+[`pc/PORTING_ROADMAP.md`](pc/PORTING_ROADMAP.md).
 
-You can find us on [Discord (pret, #pokecrystal)](https://discord.gg/d5dubZ3).
+## English
 
-For other pret projects, see [pret.github.io](https://pret.github.io/).
+Pokémon Crystal running **natively on PC** (Windows, Linux) **without an
+emulator**: the game's Game Boy assembly is **statically recompiled to C**
+and the Game Boy Color hardware is reproduced (scanline renderer, 4-channel sound,
+gamepad, real-time clock, save files).
 
-[docs]: https://pret.github.io/pokecrystal/
-[wiki]: https://github.com/pret/pokecrystal/wiki
-[tutorials]: https://github.com/pret/pokecrystal/wiki/Tutorials
-[symbols]: https://github.com/pret/pokecrystal/tree/symbols
-[tools]: https://github.com/pret/gb-asm-tools
-[ci]: https://github.com/pret/pokecrystal/actions
-[ci-badge]: https://github.com/pret/pokecrystal/actions/workflows/main.yml/badge.svg
+- **Your own ROM is required**; the executable holds no game data.
+  Supported ROMs:
+  - Pokemon - Crystal Version (USA) (v1.0)
+  - Pokemon - Version Cristal (France)
+- **Language**: English and French in one executable, picked from the ROM
+  (`--lang en|fr`, or `lang=`, `rom_en=`, `rom_fr=` in `pokecrystal.ini`).
+- **Build**: `python pc/build.py --rom-fr "<French ROM>"` (rgbds 1.0.x, make,
+  Python 3, CMake, Ninja, Clang, SDL2). The generated C is not in the
+  repository; it is produced at build time.
+- Saves: `pokemon_crystal.sav` / `pokemon_cristal.sav`, emulator-compatible `.sav` files.
+
+The original disassembly README is at
+[pret/pokecrystal](https://github.com/pret/pokecrystal#readme).
