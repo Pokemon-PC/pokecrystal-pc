@@ -8,8 +8,14 @@
  *   GB_INTERP=1          run everything in the interpreter (reference)
  *   GB_SAVE=path         save file (default: next to the executable)
  *   GB_TRACE=1           log interpreter fallbacks as they happen
+ *   GB_MOD_PATCH=path    level-2 mods (default: mods/patch_<lang>.mpatch next to the exe)
  */
 #include "hw.h"
+#ifdef PKPC_RUST
+#include "pkpc.h"   /* PKPC_RUST=ON: mods applied by the Rust library libpkpc_ffi.a */
+#else
+#include "pokemod_patch.h"
+#endif
 #include <SDL.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -509,7 +515,7 @@ int main(int argc, char **argv)
      * ROM search: explicit path (argument, rom=, rom_<lang>=), then the
      * executable's folder, then rom_dir (--rom-dir, GB_ROM_DIR), choosing the
      * file by its content (CRC), never by its name. */
-    static char cfg_rom[1024], cfg_lang[16], cfg_save[1024], cfg_palette[16] = "gbc", cfg_romdir[1024];
+    static char cfg_rom[1024], cfg_lang[16], cfg_save[1024], cfg_palette[16] = "gbc", cfg_romdir[1024], cfg_modpatch[1024];
     int fullscreen = 0, scale = 4;
     {
         char *base = SDL_GetBasePath();
@@ -536,6 +542,7 @@ int main(int argc, char **argv)
             if (!strcmp(k, "lang")) snprintf(cfg_lang, sizeof cfg_lang, "%s", v);
             else if (!strcmp(k, "rom")) snprintf(cfg_rom, sizeof cfg_rom, "%s", v);
             else if (!strcmp(k, "rom_dir")) snprintf(cfg_romdir, sizeof cfg_romdir, "%s", v);
+            else if (!strcmp(k, "mod_patch")) snprintf(cfg_modpatch, sizeof cfg_modpatch, "%s", v);
             else if (!strncmp(k, "rom_", 4) && nroms < 4) {
                 snprintf(roms[nroms][0], sizeof roms[nroms][0], "%s", k + 4);
                 snprintf(roms[nroms][1], sizeof roms[nroms][1], "%s", v);
@@ -551,6 +558,7 @@ int main(int argc, char **argv)
             else if (!strcmp(argv[i], "--scale") && i + 1 < argc) scale = atoi(argv[++i]);
             else if (!strcmp(argv[i], "--save") && i + 1 < argc) snprintf(cfg_save, sizeof cfg_save, "%s", argv[++i]);
             else if (!strcmp(argv[i], "--rom-dir") && i + 1 < argc) snprintf(cfg_romdir, sizeof cfg_romdir, "%s", argv[++i]);
+            else if (!strcmp(argv[i], "--mod-patch") && i + 1 < argc) snprintf(cfg_modpatch, sizeof cfg_modpatch, "%s", argv[++i]);
             else if (argv[i][0] != '-') snprintf(cfg_rom, sizeof cfg_rom, "%s", argv[i]);
         }
         if (getenv("GB_ROM_DIR") && !cfg_romdir[0]) snprintf(cfg_romdir, sizeof cfg_romdir, "%s", getenv("GB_ROM_DIR"));
@@ -613,6 +621,39 @@ int main(int argc, char **argv)
             host_log("  translated: %s (%s) CRC %08X\n", rc_games[i]->name, rc_games[i]->lang, rc_games[i]->crc);
         use_interp = 1;
         rc_game_name = rc_games[0] ? rc_games[0]->name : "game";
+    }
+    /* Level-2 mods (plateforme pokemod): data tables patched in the ROM image,
+     * in memory only, after the CRC check so that the translated code of this
+     * ROM is still used. Only for a known ROM: the patch addresses are those
+     * of this exact ROM (version and language). */
+    if (game) {
+        char def[1200];
+        const char *mp = cfg_modpatch[0] ? cfg_modpatch : getenv("GB_MOD_PATCH");
+        if (!mp) {
+            char *exedir = SDL_GetBasePath();
+            snprintf(def, sizeof def, "%smods/patch_%s.mpatch", exedir ? exedir : "", game->lang);
+            SDL_free(exedir);
+            mp = def;
+        }
+#ifdef PKPC_RUST
+        uint32_t abi = pkpc_abi_version();
+        if ((abi >> 16) != PKPC_ABI_MAJEURE) {
+            host_log("mods: pkpc library ABI %u.%u, this game needs %u.x: mods disabled\n",
+                     abi >> 16, abi & 0xFFFF, PKPC_ABI_MAJEURE);
+        } else {
+            int r = pkpc_load_patch(mp, GB_MOD_GAME_ID, game->lang);
+            if (r == PKPC_OK) {
+                r = pkpc_patch_memory(0, g_rom, g_rom_size);
+                host_log("mods: %s: %d ROM patch(es) applied (Rust engine pkpc ABI %u.%u)\n", mp, r,
+                         abi >> 16, abi & 0xFFFF);
+            }
+            if (r < 0 && r != PKPC_E_ABSENT)
+                host_log("mods: %s\n", pkpc_last_error());
+        }
+#else
+        if (pm_patch_load(mp, GB_MOD_GAME_ID, game->lang))
+            pm_patch_apply_rom(g_rom, (uint32_t)g_rom_size);
+#endif
     }
 
     headless = getenv("GB_HEADLESS") != NULL;
